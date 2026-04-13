@@ -82,6 +82,18 @@ func (s *ModelsSuite) TestPostSMTPValidHeader(c *check.C) {
 	c.Assert(len(ss), check.Equals, 1)
 }
 
+func (s *ModelsSuite) TestPostSMTPIDNDomain(c *check.C) {
+	smtp := SMTP{
+		Name:        "Test SMTP",
+		Host:        "1.1.1.1:25",
+		FromAddress: "foo@örnek.com",
+		UserId:      1,
+	}
+	err := PostSMTP(&smtp)
+	c.Assert(err, check.Equals, nil)
+	c.Assert(smtp.FromAddress, check.Not(check.Equals), "foo@örnek.com")
+}
+
 func (s *ModelsSuite) TestSMTPGetDialer(ch *check.C) {
 	host := "localhost"
 	port := 25

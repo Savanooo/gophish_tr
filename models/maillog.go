@@ -7,7 +7,6 @@ import (
 	"io"
 	"math"
 	"math/big"
-	"net/mail"
 	"os"
 	"path/filepath"
 	"strings"
@@ -160,7 +159,7 @@ func (m *MailLog) GetSmtpFrom() (string, error) {
 		return "", err
 	}
 
-	f, err := mail.ParseAddress(c.SMTP.FromAddress)
+	f, err := normalizeEmailAddress(c.SMTP.FromAddress)
 	return f.Address, err
 }
 
@@ -182,9 +181,9 @@ func (m *MailLog) Generate(msg *gomail.Message) error {
 		c = &campaign
 	}
 
-	f, err := mail.ParseAddress(c.Template.EnvelopeSender)
+	f, err := normalizeEmailAddress(c.Template.EnvelopeSender)
 	if err != nil {
-		f, err = mail.ParseAddress(c.SMTP.FromAddress)
+		f, err = normalizeEmailAddress(c.SMTP.FromAddress)
 		if err != nil {
 			return err
 		}

@@ -3,9 +3,7 @@ package models
 import (
 	"crypto/tls"
 	"errors"
-	"net/mail"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -81,13 +79,12 @@ func (s *SMTP) Validate() error {
 		return ErrFromAddressNotSpecified
 	case s.Host == "":
 		return ErrHostNotSpecified
-	case !validateFromAddress(s.FromAddress):
-		return ErrInvalidFromAddress
 	}
-	_, err := mail.ParseAddress(s.FromAddress)
+	addr, err := normalizeEmailAddress(s.FromAddress)
 	if err != nil {
 		return err
 	}
+	s.FromAddress = addr.Address
 	// Make sure addr is in host:port format
 	hp := strings.Split(s.Host, ":")
 	if len(hp) > 2 {
@@ -100,12 +97,6 @@ func (s *SMTP) Validate() error {
 		return ErrInvalidHost
 	}
 	return err
-}
-
-// validateFromAddress validates
-func validateFromAddress(email string) bool {
-	r, _ := regexp.Compile("^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,18})$")
-	return r.MatchString(email)
 }
 
 // GetDialer returns a dialer for the given SMTP profile

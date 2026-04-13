@@ -138,6 +138,18 @@ func (s *ModelsSuite) TestGetSmtpFrom(ch *check.C) {
 	ch.Assert(smtp_from, check.Equals, "from@example.com")
 }
 
+func (s *ModelsSuite) TestGetSmtpFromIDN(ch *check.C) {
+	req := &EmailRequest{
+		SMTP: SMTP{
+			FromAddress: "from@örnek.com",
+		},
+	}
+
+	smtpFrom, err := req.GetSmtpFrom()
+	ch.Assert(err, check.Equals, nil)
+	ch.Assert(smtpFrom, check.Not(check.Equals), "from@örnek.com")
+}
+
 func (s *ModelsSuite) TestEmailRequestURLTemplating(ch *check.C) {
 	smtp := SMTP{
 		FromAddress: "from@example.com",

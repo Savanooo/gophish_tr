@@ -2,7 +2,6 @@ package models
 
 import (
 	"fmt"
-	"net/mail"
 
 	"github.com/gophish/gomail"
 	"github.com/gophish/gophish/config"
@@ -75,7 +74,11 @@ func (s *EmailRequest) Success() error {
 }
 
 func (s *EmailRequest) GetSmtpFrom() (string, error) {
-	return s.SMTP.FromAddress, nil
+	f, err := normalizeEmailAddress(s.SMTP.FromAddress)
+	if err != nil {
+		return "", err
+	}
+	return f.Address, nil
 }
 
 // PostEmailRequest stores a SendTestEmailRequest in the database.
@@ -100,7 +103,7 @@ func GetEmailRequestByResultId(id string) (EmailRequest, error) {
 // Generate fills in the details of a gomail.Message with the contents
 // from the SendTestEmailRequest.
 func (s *EmailRequest) Generate(msg *gomail.Message) error {
-	f, err := mail.ParseAddress(s.getFromAddress())
+	f, err := normalizeEmailAddress(s.getFromAddress())
 	if err != nil {
 		return err
 	}

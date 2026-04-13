@@ -2,7 +2,6 @@ package models
 
 import (
 	"bytes"
-	"net/mail"
 	"net/url"
 	"path"
 	"text/template"
@@ -30,7 +29,7 @@ type PhishingTemplateContext struct {
 // NewPhishingTemplateContext returns a populated PhishingTemplateContext,
 // parsing the correct fields from the provided TemplateContext and recipient.
 func NewPhishingTemplateContext(ctx TemplateContext, r BaseRecipient, rid string) (PhishingTemplateContext, error) {
-	f, err := mail.ParseAddress(ctx.getFromAddress())
+	f, err := normalizeEmailAddress(ctx.getFromAddress())
 	if err != nil {
 		return PhishingTemplateContext{}, err
 	}

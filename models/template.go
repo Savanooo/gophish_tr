@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"net/mail"
 	"time"
 
 	log "github.com/gophish/gophish/logger"
@@ -36,7 +35,7 @@ func (t *Template) Validate() error {
 	case t.Text == "" && t.HTML == "":
 		return ErrTemplateMissingParameter
 	case t.EnvelopeSender != "":
-		_, err := mail.ParseAddress(t.EnvelopeSender)
+		_, err := normalizeEmailAddress(t.EnvelopeSender)
 		if err != nil {
 			return err
 		}
