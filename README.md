@@ -1,66 +1,74 @@
-![gophish logo](https://raw.github.com/gophish/gophish/master/static/images/gophish_purple.png)
+# Türkçe Domain Desteği
 
-Gophish
-=======
+Bu fork, Gophish içinde `SMTP From` ve ilgili e-posta adresi doğrulama akışlarını güncelleyerek Türkçe karakter içeren alan adlarını destekler.
 
-![Build Status](https://github.com/gophish/gophish/workflows/CI/badge.svg) [![GoDoc](https://godoc.org/github.com/gophish/gophish?status.svg)](https://godoc.org/github.com/gophish/gophish)
+## Neden gerekliydi?
 
-Gophish: Open-Source Phishing Toolkit
+Orijinal akışta `SMTP From` alanı çok katı bir regex ile doğrulanıyordu. Bu nedenle aşağıdaki gibi uluslararasılaştırılmış domain adları kabul edilmiyordu:
 
-[Gophish](https://getgophish.com) is an open-source phishing toolkit designed for businesses and penetration testers. It provides the ability to quickly and easily setup and execute phishing engagements and security awareness training.
+- `enes@düzcecam.com`
+- `info@örnek.com`
 
-### Install
+Sistem bu adresleri:
 
-Installation of Gophish is dead-simple - just download and extract the zip containing the [release for your system](https://github.com/gophish/gophish/releases/), and run the binary. Gophish has binary releases for Windows, Mac, and Linux platforms.
+`Invalid SMTP From address because it is not an email address`
 
-### Building From Source
-**If you are building from source, please note that Gophish requires Go v1.10 or above!**
+hatası ile reddediyordu.
 
-To build Gophish from source, simply run ```git clone https://github.com/gophish/gophish.git``` and ```cd``` into the project source directory. Then, run ```go build```. After this, you should have a binary called ```gophish``` in the current directory.
+## Bu fork neyi değiştiriyor?
 
-### Docker
-You can also use Gophish via the official Docker container [here](https://hub.docker.com/r/gophish/gophish/).
+Bu sürümde e-posta adreslerinin domain kısmı IDN uyumlu şekilde işlenir.
 
-### Setup
-After running the Gophish binary, open an Internet browser to https://localhost:3333 and login with the default username and password listed in the log output.
-e.g.
-```
-time="2020-07-29T01:24:08Z" level=info msg="Please login with the username admin and the password 4304d5255378177d"
-```
+- Unicode domain kabul edilir
+- Domain kısmı SMTP uyumlu ASCII/punycode biçimine çevrilir
+- Gönderim ve doğrulama akışları ortak normalize mantığı kullanır
+- Eski regex tabanlı kısıt kaldırılmıştır
 
-Releases of Gophish prior to v0.10.1 have a default username of `admin` and password of `gophish`.
+Örnek:
 
-### Documentation
+- Giriş: `enesalbayrak@düzcecam.com`
+- İç işleme / SMTP uyumlu form: punycode dönüşümü ile ASCII domain
 
-Documentation can be found on our [site](http://getgophish.com/documentation). Find something missing? Let us know by filing an issue!
+## Hangi alanlarda düzeltildi?
 
-### Issues
+Aşağıdaki akışlar güncellendi:
 
-Find a bug? Want more features? Find something missing in the documentation? Let us know! Please don't hesitate to [file an issue](https://github.com/gophish/gophish/issues/new) and we'll get right on it.
+- Sending Profile doğrulaması
+- Test email gönderimi
+- Campaign mail üretimi
+- Template context / From çözümleme akışı
 
-### License
-```
-Gophish - Open-Source Phishing Framework
+## Orijinal sürümden farkı
 
-The MIT License (MIT)
+Orijinal sürüm:
 
-Copyright (c) 2013 - 2020 Jordan Wright
+- Sadece klasik ASCII domainleri güvenle kabul ediyordu
+- IDN domainlerde hataya düşebiliyordu
+- `SMTP From` doğrulaması gereğinden katıydı
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software ("Gophish Community Edition") and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Bu fork:
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+- Türkçe domain kullanan adresleri destekler
+- Domain kısmını SMTP için uygun hale getirir
+- Modern IDN kullanımına daha uyumludur
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-```
+## Sınırlar
+
+Bu değişiklik özellikle domain kısmını hedefler.
+
+Desteklenen:
+- `kullanici@örnek.com`
+
+Henüz sınırlı olabilecek durum:
+- `çağrı@ornek.com`
+
+Yani domain tarafında Türkçe karakter desteği vardır. Local-part tarafında (`@` öncesi bölüm) tam UTF-8 mail desteği, SMTP sunucusunun `SMTPUTF8` desteğine bağlıdır ve ayrı bir konudur.
+
+## Kurulum
+
+Kaynak kodu çektikten sonra binary yeniden derlenmelidir:
+
+```bash
+git pull
+go build -o gophish
+./gophish
